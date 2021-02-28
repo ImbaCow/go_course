@@ -1,0 +1,6 @@
+{
+    "paths": {
+        "/link1": "https://google.com",
+        "/link2": "https://yandex.ru"
+    }
+}
