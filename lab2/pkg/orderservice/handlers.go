@@ -69,11 +69,13 @@ func handleOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
 	if _, err = io.WriteString(w, string(result)); err != nil {
 		log.WithField("err", err).Error("write response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 }
 
 func handleOrders(w http.ResponseWriter, _ *http.Request) {
@@ -84,11 +86,13 @@ func handleOrders(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
 	if _, err = io.WriteString(w, string(result)); err != nil {
 		log.WithField("err", err).Error("write response error")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 }
 
 func findAllOrders() []order {
