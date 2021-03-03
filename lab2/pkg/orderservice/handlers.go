@@ -2,7 +2,6 @@ package orderservice
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -29,16 +28,9 @@ type order2 struct {
 	Cost               int        `json:"cost"`
 }
 
-type kitty struct {
-	Name string `json:"name"`
-}
-
 // Router ...
 func Router() http.Handler {
 	r := mux.NewRouter()
-	r.HandleFunc("/hello-world", handleHelloWorld).Methods(http.MethodGet)
-	r.HandleFunc("/cat", handleKitty).Methods(http.MethodGet)
-
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/order/{ID}", handleOrder).Methods(http.MethodGet)
 	s.HandleFunc("/orders", handleOrders).Methods(http.MethodGet)
@@ -62,39 +54,15 @@ func logMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-func handleKitty(w http.ResponseWriter, _ *http.Request) {
-	cat := kitty{"Кот"}
-	b, err := json.Marshal(cat)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if _, err = io.WriteString(w, string(b)); err != nil {
-		log.WithField("err", err).Error("write response error")
-	}
-}
-
-func handleHelloWorld(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprint(w, "Hello World!")
-}
-
 func handleOrder(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["ID"]
-	order := order2{
-		ID: id,
-		MenuItems: []menuItem{
-			{
-				ID:       "asdasdasdasd",
-				Quantity: 1,
-			},
-		},
-		OrderedAtTimestamp: 123123123123,
-		Cost:               999,
+	order := findOrder(id)
+	if order == nil {
+		http.Error(w, "Order not found", http.StatusNotFound)
+		return
 	}
+
 	result, err := json.Marshal(order)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -109,17 +77,7 @@ func handleOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleOrders(w http.ResponseWriter, _ *http.Request) {
-	orders := []order{
-		{
-			ID: "asdasdasdasd",
-			MenuItems: []menuItem{
-				{
-					ID:       "asdasdasdasd",
-					Quantity: 1,
-				},
-			},
-		},
-	}
+	orders := findAllOrders()
 	result, err := json.Marshal(orders)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -130,5 +88,37 @@ func handleOrders(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if _, err = io.WriteString(w, string(result)); err != nil {
 		log.WithField("err", err).Error("write response error")
+	}
+}
+
+func findAllOrders() []order {
+	return []order{
+		{
+			ID: "d290f1ee-6c54-4b01-90e6-d701748f0851",
+			MenuItems: []menuItem{
+				{
+					ID:       "f290d1ce-6c234-4b31-90e6-d701748f0851",
+					Quantity: 1,
+				},
+			},
+		},
+	}
+}
+
+func findOrder(id string) *order2 {
+	if id != "d290f1ee-6c54-4b01-90e6-d701748f0851" {
+		return nil
+	}
+
+	return &order2{
+		ID: id,
+		MenuItems: []menuItem{
+			{
+				ID:       "f290d1ce-6c234-4b31-90e6-d701748f0851",
+				Quantity: 1,
+			},
+		},
+		OrderedAtTimestamp: 1613758423,
+		Cost:               999,
 	}
 }
